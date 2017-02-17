@@ -22,16 +22,25 @@ class MathExtension(markdown.extensions.Extension):
 
     def extendMarkdown(self, md, md_globals):
         def handle_match_inline(m):
+            # Create parent element
+            node_both = markdown.util.etree.Element('span')
+
+            # if render_to_span (fallback for non-js) is set - create an
+            # element for that
             if self.getConfig('render_to_span'):
-                node = markdown.util.etree.Element('span')
-                node.set('class', 'tex')
-                node.text = ("\\\\(" + markdown.util.AtomicString(m.group(3)) +
-                        "\\\\)")
-            else:
-                node = markdown.util.etree.Element('script')
-                node.set('type', 'math/tex')
-                node.text = markdown.util.AtomicString(m.group(3))
-            return node
+                node_span = markdown.util.etree.Element('span')
+                node_span.set('class', 'MathJax_Preview')
+                node_span.text = ("\\\\(" + markdown.util.AtomicString(
+                    m.group(3)) + "\\\\)")
+                node_both.append(node_span)
+
+            # Create MathJax element
+            node_script = markdown.util.etree.Element('script')
+            node_script.set('type', 'math/tex')
+            node_script.text = markdown.util.AtomicString(m.group(3))
+            node_both.append(node_script)
+
+            return node_both
 
         def handle_match(m):
             node = markdown.util.etree.Element('script')
